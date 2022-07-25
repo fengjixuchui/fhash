@@ -239,9 +239,10 @@
     <ClCompile Include="source\Common\HashEngine.cpp" />
     <ClCompile Include="source\Common\strhelper.cpp" />
     <ClCompile Include="source\Common\Utils.cpp" />
-    <ClCompile Include="source\OsUtils\OsFileWinAfx.cpp" />
+    <ClCompile Include="source\OsUtils\OsFileWinApi.cpp" />
     <ClCompile Include="source\OsUtils\OsThreadWinApi.cpp" />
     <ClCompile Include="source\stdafx.cpp" />
+    <ClCompile Include="source\WinCommon\WindowsComm.cpp" />
     <ClCompile Include="source\WinMFC\AboutDlg.cpp" />
     <ClCompile Include="source\WinMFC\FilesHash.cpp" />
     <ClCompile Include="source\WinMFC\FilesHashDlg.cpp" />
@@ -252,8 +253,8 @@
     <ClCompile Include="source\WinMFC\UIBridgeMFC.cpp" />
     <ClCompile Include="source\WinMFC\UIStringsBase.cpp" />
     <ClCompile Include="source\WinMFC\UIStringsZHCN.cpp" />
-    <ClCompile Include="source\WinMFC\WindowsStrings.cpp" />
-    <ClCompile Include="source\WinMFC\WindowsStringsInternal.cpp" />
+    <ClCompile Include="source\WinCommon\WindowsStrings.cpp" />
+    <ClCompile Include="source\WinCommon\WindowsStringsInternal.cpp" />
     <ClCompile Include="source\WinMFC\WindowsUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -266,13 +267,14 @@
     <ClInclude Include="source\Common\strhelper.h" />
     <ClInclude Include="source\Common\UIBridgeBase.h" />
     <ClInclude Include="source\Common\Utils.h" />
-    <ClInclude Include="source\endianness.h" />
+    <ClInclude Include="source\Algorithms\endianness.h" />
     <ClInclude Include="source\OsUtils\OsFile.h" />
     <ClInclude Include="source\OsUtils\OsThread.h" />
     <ClInclude Include="source\resource.h" />
     <ClInclude Include="source\stdafx.h" />
     <ClInclude Include="source\targetver.h" />
     <ClInclude Include="source\version.h" />
+    <ClInclude Include="source\WinCommon\WindowsComm.h" />
     <ClInclude Include="source\WinMFC\AboutDlg.h" />
     <ClInclude Include="source\WinMFC\FilesHash.h" />
     <ClInclude Include="source\WinMFC\FilesHashDlg.h" />
@@ -280,12 +282,11 @@
     <ClInclude Include="source\WinMFC\HyperEdit.h" />
     <ClInclude Include="source\WinMFC\HyperEditHash.h" />
     <ClInclude Include="source\WinMFC\ShellExtComm.h" />
-    <ClInclude Include="source\WinMFC\stdint.h" />
     <ClInclude Include="source\WinMFC\UIBridgeMFC.h" />
     <ClInclude Include="source\WinMFC\UIStringsBase.h" />
     <ClInclude Include="source\WinMFC\UIStringsZHCN.h" />
-    <ClInclude Include="source\WinMFC\WindowsStrings.h" />
-    <ClInclude Include="source\WinMFC\WindowsStringsInternal.h" />
+    <ClInclude Include="source\WinCommon\WindowsStrings.h" />
+    <ClInclude Include="source\WinCommon\WindowsStringsInternal.h" />
     <ClInclude Include="source\WinMFC\WindowsUtils.h" />
   </ItemGroup>
   <ItemGroup>

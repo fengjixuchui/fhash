@@ -38,13 +38,8 @@
 *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 *  MA 02110-1301, USA.
 */
-#include <string>
-
-#if defined (WIN32)
-#include "WinMFC/stdint.h"
-#else
 #include <stdint.h>
-#endif
+#include <string>
 
 #define SHA256_DIGEST_SIZE 32
 #define SHA256_DATA_SIZE 64
@@ -72,10 +67,10 @@ sha256_final(struct sha256_ctx *ctx);
 void
 sha256_digest(const struct sha256_ctx *ctx, unsigned char *digest);
 
-#if defined (WIN32)
-void
-sha256_digest(const struct sha256_ctx *ctx, CString* sDigest);
-#endif
+//#if defined (WIN32)
+//void
+//sha256_digest(const struct sha256_ctx *ctx, CString* sDigest);
+//#endif
 
 void
 sha256_digest(const struct sha256_ctx *ctx, std::string* sDigest);

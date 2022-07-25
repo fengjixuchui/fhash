@@ -7,7 +7,6 @@
 #if defined (__APPLE__) || defined (__unix)
 #include <string.h>
 #include <unistd.h>
-#include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #endif
@@ -16,7 +15,10 @@
 #include "Common/UIBridgeBase.h"
 
 #if defined (WIN32)
-#include "WinMFC/WindowsUtils.h"
+#include "WinCommon/WindowsComm.h"
+#if defined (FHASH_UWP_LIB)
+#include "WinCommon/FileVersionHelper.h"
+#endif
 #endif
 
 #include "OsUtils/OsFile.h"
@@ -86,7 +88,7 @@ int WINAPI HashThreadFunc(void *param)
 				return 0;
 			}
 			uint64_t fSize = 0;
-		
+
 			const TCHAR* path;
 			path = thrdData->fullPaths[i].c_str();
 			OsFile osFile(path);
@@ -126,7 +128,7 @@ int WINAPI HashThreadFunc(void *param)
 		//unsigned int len;
 		//unsigned char buffer[65534];
 		DataBuffer databuf;
-		
+
 		MD5_CTX mdContext; // MD5 context
 
 		CSHA1 sha1; // SHA1 object
@@ -139,7 +141,7 @@ int WINAPI HashThreadFunc(void *param)
 		uint8_t digestSHA512[SHA512_DIGEST_LENGTH];
 		string strSHA512;
 		// Declaration for calculator
-		
+
 		ResultData resultNew;
 		thrdData->resultList.push_back(resultNew);
 		ResultData& result = thrdData->resultList.back();
@@ -157,9 +159,10 @@ int WINAPI HashThreadFunc(void *param)
 
 		//Calculating begins
 #if defined (WIN32)
-		CFileException fExc;
+		// CFileException fExc;
+		TCHAR fExc[OsFile::ERR_MSG_BUFFER_LEN] = { 0 };
 #else
-		char fExc[1024] = {0};
+		char fExc[OsFile::ERR_MSG_BUFFER_LEN] = { 0 };
 #endif
 		OsFile osFile(path);
 		if (osFile.openReadScan((void *)&fExc)) 
@@ -179,34 +182,12 @@ int WINAPI HashThreadFunc(void *param)
 			*/
 
 			// get file status //
-			tstring tstrLastModifiedTime;
-#if defined (WIN32)
-			CTime ctModifedTime;
-#else
-			struct timespec ctModifedTime;
-#endif
-			if (osFile.getModifiedTime((void *)&ctModifedTime))
-			{
-#if defined (WIN32)
-				tstrLastModifiedTime = ctModifedTime.Format("%Y-%m-%d %H:%M").GetString();
-#else
-				time_t ttModifiedTime;
-				struct tm *tmModifiedTime;
-				
-				ttModifiedTime = ctModifedTime.tv_sec;
-				tmModifiedTime = localtime(&ttModifiedTime);
-				
-				char szTmBuf[1024] = {0};
-				strftime(szTmBuf, 1024, "%Y-%m-%d %H:%M", tmModifiedTime);
-				
-				tstrLastModifiedTime = strtotstr(string(szTmBuf));
-#endif
-				result.tstrMDate = tstrLastModifiedTime;
-			}
+			tstring tstrLastModifiedTime = osFile.getModifiedTimeFormat();
+			result.tstrMDate = tstrLastModifiedTime;
 			
 			fsize = osFile.getLength(); // fix 4GB file
 			result.ulSize = fsize;
-			
+
 			if (!isSizeCaled) // not calculated size
 			{
 				thrdData->totalSize += fsize;
@@ -219,15 +200,21 @@ int WINAPI HashThreadFunc(void *param)
 
 #if defined (WIN32)
 			// get file version //
-			CString cstrVer = WindowsUtils::GetExeFileVersion((TCHAR *)path);
-			tstrFileVersion = cstrVer.GetString();
+#if defined (FHASH_UWP_LIB)
+			WindowsComm::FileVersionHelper fvHelper(osFile);
+			tstrFileVersion = fvHelper.Find();
 			result.tstrVersion = tstrFileVersion;
+			osFile.seek(0, OsFile::OsFileSeekFrom::OF_SEEK_BEGIN); // reset offset
+#else
+			tstrFileVersion = WindowsComm::GetExeFileVersion((TCHAR *)path);
+			result.tstrVersion = tstrFileVersion;
+#endif
 #endif
 
 			result.enumState = RESULT_META;
 
 			uiBridge->showFileMeta(result);
-			
+
 			// get calculating times //
 			times = fsize / DataBuffer::preflen + 1;
 			
@@ -251,18 +238,18 @@ int WINAPI HashThreadFunc(void *param)
 				{
 					databuf.datalen = 0;
 				}
-				
+
 				t++;
 
 				MD5Update(&mdContext, databuf.data, databuf.datalen); // MD5 update
 				sha1.Update(databuf.data, databuf.datalen); // SHA1 update
 				sha256_update(&sha256Ctx, databuf.data, databuf.datalen); // SHA256 update
 				SHA512_Update(&sha512Ctx, databuf.data, databuf.datalen); // SHA512 update
-				
+
 				finishedSize += databuf.datalen;
-				
+
 				int progressMax = uiBridge->getProgMax();
-				
+
 				int positionNew;
 				if (fsize == 0)
 				{
@@ -272,7 +259,7 @@ int WINAPI HashThreadFunc(void *param)
 				{
 					positionNew = (int)(progressMax * finishedSize / fsize);
 				}
-				
+
 				if (positionNew > position)
 				{
 					uiBridge->updateProg(positionNew);
@@ -297,9 +284,9 @@ int WINAPI HashThreadFunc(void *param)
 
 			} 
 			while (databuf.datalen >= DataBuffer::preflen);
-			
+
 			uiBridge->fileCalcFinish();
-			
+
 			MD5Final(&mdContext); // MD5 final
 			sha1.Final(); // SHA1 final
 			sha256_final(&sha256Ctx); // SHA256 final
@@ -313,7 +300,8 @@ int WINAPI HashThreadFunc(void *param)
 				}
 				else
 				{
-					uiBridge->updateProgWhole((i + 1) * 100 / (thrdData->nFiles));
+					int progressMax = uiBridge->getProgMax();
+					uiBridge->updateProgWhole((i + 1) * progressMax / (thrdData->nFiles));
 				}
 			}
 
@@ -398,9 +386,10 @@ int WINAPI HashThreadFunc(void *param)
 		else
 		{
 #if defined (WIN32)
-			TCHAR szError[1024] = {0};
+			/*TCHAR szError[1024] = {0};
 			fExc.GetErrorMessage(szError, 1024);
-			result.tstrError = szError;
+			result.tstrError = szError;*/
+			result.tstrError = fExc;
 #else
 			result.tstrError = strtotstr(string(fExc));
 #endif
@@ -409,7 +398,7 @@ int WINAPI HashThreadFunc(void *param)
 
 			uiBridge->showFileErr(result);
 		}
-		
+
 		uiBridge->fileFinish();
 	} // end for(i = 0; i < (thrdData->nFiles); i++)
 

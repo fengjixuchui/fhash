@@ -15,7 +15,8 @@
 #include "Common/HashEngine.h"
 #include "WindowsUtils.h"
 #include "UIBridgeMFC.h"
-#include "WindowsStrings.h"
+#include "WinCommon/WindowsComm.h"
+#include "WinCommon/WindowsStrings.h"
 
 using namespace std;
 using namespace sunjwbase;
@@ -379,11 +380,11 @@ void CFilesHashDlg::OnBnClickedAbout()
 
 void CFilesHashDlg::OnBnClickedClean()
 {
-	if(!m_thrdData.threadWorking)
+	if (!m_thrdData.threadWorking)
 	{
 		CString strBtnText;
 		m_btnClr.GetWindowText(strBtnText);
-		if(strBtnText.Compare(GetStringByKey(MAINDLG_CLEAR)) == 0)
+		if (strBtnText.Compare(GetStringByKey(MAINDLG_CLEAR)) == 0)
 		{
 			m_mainMtx.lock();
 			{
@@ -400,17 +401,9 @@ void CFilesHashDlg::OnBnClickedClean()
 
 			SetWholeProgPos(0);
 		}
-		else if(strBtnText.Compare(GetStringByKey(MAINDLG_CLEAR_VERIFY)) == 0)
+		else if (strBtnText.Compare(GetStringByKey(MAINDLG_CLEAR_VERIFY)) == 0)
 		{
-			// 退出搜索模式
-			m_bFind = FALSE;
-			m_btnClr.SetWindowText(GetStringByKey(MAINDLG_CLEAR));
-
-			m_btnFind.EnableWindow(TRUE);
-			m_btnOpen.EnableWindow(TRUE);
-
-			RefreshResult();
-			RefreshMainText();
+			ClearFind();
 		}
 	}
 }
@@ -420,10 +413,10 @@ void CFilesHashDlg::OnBnClickedFind()
 	// TODO: 在此添加控件通知处理程序代码
 	CFindDlg Find;
 	Find.SetFindHash(_T(""));
-	if(IDOK == Find.DoModal())
+	if (IDOK == Find.DoModal())
 	{
 		m_strFindHash = Find.GetFindHash().Trim();
-		if(m_strFindHash.Compare(_T("")) != 0)
+		if (m_strFindHash.Compare(_T("")) != 0)
 		{
 			m_bFind = TRUE; // 进入搜索模式
 			m_btnClr.SetWindowText(GetStringByKey(MAINDLG_CLEAR_VERIFY));
@@ -441,14 +434,14 @@ void CFilesHashDlg::OnBnClickedFind()
 
 void CFilesHashDlg::OnBnClickedContext()
 {
-	if(m_bLimited)
+	if (m_bLimited)
 	{
 		OSVERSIONINFOEX osvi;
 		BOOL bOsVersionInfoEx;
-		if(WindowsUtils::GetWindowsVersion(osvi, bOsVersionInfoEx) &&
+		if (WindowsComm::GetWindowsVersion(osvi, bOsVersionInfoEx) &&
 			osvi.dwMajorVersion >= 6)
 		{
-			if(WindowsUtils::ElevateProcess())
+			if (WindowsUtils::ElevateProcess())
 				ExitProcess(0);
 		}
 	}
@@ -459,10 +452,10 @@ void CFilesHashDlg::OnBnClickedContext()
 
 	m_btnContext.GetWindowText(buttonText);
 
-	if(buttonText.Compare(GetStringByKey(MAINDLG_ADD_CONTEXT_MENU)) == 0)
+	if (buttonText.Compare(GetStringByKey(MAINDLG_ADD_CONTEXT_MENU)) == 0)
 	{
 		WindowsUtils::RemoveContextMenu(); // Try to delete all items related to fHash
-		if(WindowsUtils::AddContextMenu())
+		if (WindowsUtils::AddContextMenu())
 		{
 			pWnd->SetWindowText(GetStringByKey(MAINDLG_ADD_SUCCEEDED));
 			m_btnContext.SetWindowText(GetStringByKey(MAINDLG_REMOVE_CONTEXT_MENU));
@@ -472,9 +465,9 @@ void CFilesHashDlg::OnBnClickedContext()
 			pWnd->SetWindowText(GetStringByKey(MAINDLG_ADD_FAILED));
 		}
 	}
-	else if(buttonText.Compare(GetStringByKey(MAINDLG_REMOVE_CONTEXT_MENU)) == 0)
+	else if (buttonText.Compare(GetStringByKey(MAINDLG_REMOVE_CONTEXT_MENU)) == 0)
 	{
-		if(WindowsUtils::RemoveContextMenu())
+		if (WindowsUtils::RemoveContextMenu())
 		{
 			pWnd->SetWindowText(GetStringByKey(MAINDLG_REMOVE_SUCCEEDED));
 			m_btnContext.SetWindowText(GetStringByKey(MAINDLG_ADD_CONTEXT_MENU));
@@ -545,13 +538,20 @@ void CFilesHashDlg::OnTimer(UINT_PTR nIDEvent)
 void CFilesHashDlg::SetWholeProgPos(UINT pos)
 {
 	m_progWhole.SetPos(pos);
-	if(m_bAdvTaskbar)
+	if (m_bAdvTaskbar)
+	{
 		pTl->SetProgressValue(GetSafeHwnd(), pos, 99);
+	}
 }
 
 void CFilesHashDlg::DoMD5()
 {
-	if(m_hWorkThread)
+	if (m_bFind)
+	{
+		ClearFind();
+	}
+
+	if (m_hWorkThread)
 	{
 		CloseHandle(m_hWorkThread);
 	}
@@ -950,3 +950,15 @@ void CFilesHashDlg::AppendResult(const ResultData& result)
 	UIBridgeMFC::AppendResultToHyperEdit(result, m_thrdData.uppercase, &m_editMain);
 }
 
+void CFilesHashDlg::ClearFind()
+{
+	// 退出搜索模式
+	m_bFind = FALSE;
+	m_btnClr.SetWindowText(GetStringByKey(MAINDLG_CLEAR));
+
+	m_btnFind.EnableWindow(TRUE);
+	m_btnOpen.EnableWindow(TRUE);
+
+	RefreshResult();
+	RefreshMainText();
+}

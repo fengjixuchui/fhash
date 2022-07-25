@@ -11,11 +11,7 @@
 #include <stdlib.h>
 
 #include <stdlib.h>
-#if defined (WIN32)
-#include "WinMFC/stdint.h"
-#else
 #include <stdint.h>
-#endif
 #include "Common/strhelper.h"
 
 namespace sunjwbase
@@ -23,6 +19,8 @@ namespace sunjwbase
 	class OsFile
 	{
 	public:
+		static const uint32_t ERR_MSG_BUFFER_LEN = 1024;
+
 		enum OsFileStatus
 		{
 			CLOSED = 0, OPEN_READ, OPEN_WRITE, OPEN_READWRITE
@@ -45,6 +43,7 @@ namespace sunjwbase
 		// Attributes
 		int64_t getLength();
 		bool getModifiedTime(void *modifiedTime);
+		sunjwbase::tstring getModifiedTimeFormat();
 
 		// Operation
 		uint64_t seek(uint64_t offset, OsFileSeekFrom from);

@@ -9,12 +9,11 @@
 #include "OsThread.h"
 
 #include <stdlib.h>
+#include <stdint.h>
 
 #include "Windows.h"
-#include "WinMFC/stdint.h"
 
 using namespace sunjwbase;
-
 
 #define GET_CRITSEC_FROM_POINTER(pointer) ((CRITICAL_SECTION *)(pointer))
 

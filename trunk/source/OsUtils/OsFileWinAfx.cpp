@@ -10,11 +10,11 @@
 #include "OsFile.h"
 
 #include <stdlib.h>
+#include <stdint.h>
 
 #include "Windows.h"
 #include "afx.h"
 
-#include "WinMFC/stdint.h"
 #include "Common/strhelper.h"
 
 using namespace std;
@@ -135,10 +135,13 @@ int64_t OsFile::getLength()
 	// Not opened, let's open it.
 	if (_fileStatus == CLOSED && openRead())
 	{
-		needClose = true;		
+		needClose = true;
 	}
 
-	retLength = cfile->GetLength();
+	if (_fileStatus != CLOSED)
+	{
+		retLength = cfile->GetLength();
+	}
 
 	if (needClose)
 	{
@@ -164,10 +167,22 @@ bool OsFile::getModifiedTime(void *modifiedTime)
 	return false;
 }
 
+tstring OsFile::getModifiedTimeFormat()
+{
+	tstring tstrLastModifiedTime;
+	CTime ctModifedTime;
+	if (this->getModifiedTime((void *)&ctModifedTime))
+	{
+		tstrLastModifiedTime = ctModifedTime.Format("%Y-%m-%d %H:%M").GetString();
+	}
+
+	return tstrLastModifiedTime;
+}
+
 uint64_t OsFile::seek(uint64_t offset, OsFileSeekFrom from)
 {
 	UINT cfSeekFlag = CFile::begin;
-	switch(from)
+	switch (from)
 	{
 	case OF_SEEK_BEGIN:
 		cfSeekFlag = CFile::begin;
