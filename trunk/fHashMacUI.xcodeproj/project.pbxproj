@@ -40,6 +40,7 @@
 		410E26141B71C9CC004B3C9A /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/Localizable.strings; sourceTree = "<group>"; };
 		4111D69B27F16A35001AD814 /* sha512.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sha512.h; path = source/Algorithms/sha512.h; sourceTree = "<group>"; };
 		4111D69C27F16A35001AD814 /* sha512.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = sha512.cpp; path = source/Algorithms/sha512.cpp; sourceTree = "<group>"; };
+		415F8D6E28CF558500D8971C /* ThreadPool.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ThreadPool.h; path = source/Common/ThreadPool.h; sourceTree = "<group>"; };
 		4163EC952850A2C900453333 /* stdafx.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = stdafx.h; path = source/OSXUI/stdafx.h; sourceTree = "<group>"; };
 		41666E041B67415300A1D71F /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		41666E061B6741C900A1D71F /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
@@ -68,7 +69,7 @@
 		52225808213CDA7C00012EF8 /* Utils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Utils.cpp; path = source/Common/Utils.cpp; sourceTree = "<group>"; };
 		52225809213CDA7C00012EF8 /* Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Utils.h; path = source/Common/Utils.h; sourceTree = "<group>"; };
 		5222580E213CDB2900012EF8 /* HashEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = HashEngine.h; path = source/Common/HashEngine.h; sourceTree = "<group>"; };
-		5222580F213CDB2900012EF8 /* HashEngine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = HashEngine.cpp; path = source/Common/HashEngine.cpp; sourceTree = "<group>"; };
+		5222580F213CDB2900012EF8 /* HashEngine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = HashEngine.cpp; path = source/Common/HashEngine.cpp; sourceTree = "<group>"; usesTabs = 1; };
 		52225814213CDB9D00012EF8 /* UIBridgeBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UIBridgeBase.h; path = source/Common/UIBridgeBase.h; sourceTree = "<group>"; };
 		52225819213CF24300012EF8 /* MacUtils.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = MacUtils.mm; path = source/OSXUI/MacUtils.mm; sourceTree = SOURCE_ROOT; };
 		5222581A213CF24300012EF8 /* MacUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MacUtils.h; path = source/OSXUI/MacUtils.h; sourceTree = SOURCE_ROOT; };
@@ -125,6 +126,7 @@
 				4163EC952850A2C900453333 /* stdafx.h */,
 				52225802213CD95D00012EF8 /* strhelper.cpp */,
 				52225803213CD95D00012EF8 /* strhelper.h */,
+				415F8D6E28CF558500D8971C /* ThreadPool.h */,
 				52225814213CDB9D00012EF8 /* UIBridgeBase.h */,
 				52225808213CDA7C00012EF8 /* Utils.cpp */,
 				52225809213CDA7C00012EF8 /* Utils.h */,
@@ -252,7 +254,7 @@
 		52751B081B56276F00BD724B /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1200;
+				LastUpgradeCheck = 1410;
 				ORGANIZATIONNAME = "Sun Junwen";
 				TargetAttributes = {
 					52751B0F1B56276F00BD724B = {
@@ -395,6 +397,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "-";
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -404,6 +407,8 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
+					"FHASH_OSX_UI=1",
+					"FHASH_THREAD_HASH_UPDATE=1",
 					"$(inherited)",
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -412,7 +417,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -450,18 +455,23 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "-";
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"FHASH_OSX_UI=1",
+					"FHASH_THREAD_HASH_UPDATE=1",
+				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 			};
@@ -474,14 +484,15 @@
 				CODE_SIGN_ENTITLEMENTS = source/OSXUI/fHash.entitlements;
 				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
+				DEAD_CODE_STRIPPING = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/source/OSXUI",
 					"$(PROJECT_DIR)/source",
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/source/OSXUI/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				OTHER_CFLAGS = "-DFHASH_OSX_UI";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "-liconv";
 				PRODUCT_BUNDLE_IDENTIFIER = org.sunjw.fHashMacUI;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -495,14 +506,15 @@
 				CODE_SIGN_ENTITLEMENTS = source/OSXUI/fHash.entitlements;
 				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
+				DEAD_CODE_STRIPPING = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/source/OSXUI",
 					"$(PROJECT_DIR)/source",
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/source/OSXUI/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				OTHER_CFLAGS = "-DFHASH_OSX_UI";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "-liconv";
 				PRODUCT_BUNDLE_IDENTIFIER = org.sunjw.fHashMacUI;
 				PRODUCT_NAME = "$(TARGET_NAME)";

@@ -1,3 +1,18 @@
+3.1.2.0 (56) 2022-12-15  
+Windows UWP support for arm64  
+
+3.1.1.0 (55) 2022-12-01  
+macOS support for 11 and later  
+Fix other issues  
+
+3.1.0.0 (54) 2022-09-26  
+Performance improvement  
+UI tweak  
+
+3.0.2.0 (51) 2022-08-31  
+Windows UWP update components  
+Fix other issues  
+
 3.0.1.0 (50) 2022-07-23  
 Windows UWP fix progress bar high DPI display issue  
 Windows UWP fix Windows version detection issue  

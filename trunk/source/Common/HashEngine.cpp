@@ -4,6 +4,10 @@
 
 #include <stdlib.h>
 
+#if defined (FHASH_THREAD_HASH_UPDATE)
+#include "Common/ThreadPool.h"
+#endif
+
 #if defined (__APPLE__) || defined (__unix)
 #include <string.h>
 #include <unistd.h>
@@ -49,6 +53,26 @@ public:
 
 unsigned int DataBuffer::preflen = 1048576; // 2^20
 
+static void MD5UpdateWrapper(MD5_CTX *mdContext, unsigned char *inBuf, unsigned int inLen)
+{
+	MD5Update(mdContext, inBuf, inLen); // MD5 update
+}
+
+static void SHA1UpdateWrapper(CSHA1 *sha1, unsigned char *data, unsigned int len)
+{
+	sha1->Update(data, len); // SHA1 update
+}
+
+static void SHA256UpdateWrapper(struct sha256_ctx *ctx, const unsigned char *buffer, uint32_t length)
+{
+	sha256_update(ctx, buffer, length); // SHA256 update
+}
+
+static void SHA512UpdateWrapper(SHA512_CTX *context, void *datain, size_t len)
+{
+	SHA512_Update(context, datain, len); // SHA512 update
+}
+
 // working thread
 int WINAPI HashThreadFunc(void *param)
 {
@@ -73,6 +97,13 @@ int WINAPI HashThreadFunc(void *param)
 	tstring tstrFileSHA256;
 	tstring tstrFileSHA512;
 
+#if defined (FHASH_THREAD_HASH_UPDATE)
+	// Create thread pool with 4 threads
+	ThreadPool threadPool(4);
+	// Initialize thread pool
+	threadPool.init();
+#endif
+
 	uiBridge->preparingCalc();
 
 	// get total files size
@@ -83,7 +114,11 @@ int WINAPI HashThreadFunc(void *param)
 		{
 			if (thrdData->stop)
 			{
+#if defined (FHASH_THREAD_HASH_UPDATE)
+				threadPool.shutdown();
+#endif
 				thrdData->threadWorking = false;
+
 				uiBridge->calcStop();
 				return 0;
 			}
@@ -110,7 +145,11 @@ int WINAPI HashThreadFunc(void *param)
 	{
 		if (thrdData->stop)
 		{
+#if defined (FHASH_THREAD_HASH_UPDATE)
+			threadPool.shutdown();
+#endif
 			thrdData->threadWorking = false;
+
 			uiBridge->calcStop();
 			return 0;
 		}
@@ -224,8 +263,11 @@ int WINAPI HashThreadFunc(void *param)
 				if (thrdData->stop)
 				{
 					osFile.close();
-
+#if defined (FHASH_THREAD_HASH_UPDATE)
+					threadPool.shutdown();
+#endif
 					thrdData->threadWorking = false;
+
 					uiBridge->calcStop();
 					return 0;
 				}
@@ -241,10 +283,28 @@ int WINAPI HashThreadFunc(void *param)
 
 				t++;
 
-				MD5Update(&mdContext, databuf.data, databuf.datalen); // MD5 update
-				sha1.Update(databuf.data, databuf.datalen); // SHA1 update
-				sha256_update(&sha256Ctx, databuf.data, databuf.datalen); // SHA256 update
-				SHA512_Update(&sha512Ctx, databuf.data, databuf.datalen); // SHA512 update
+#if defined (FHASH_THREAD_HASH_UPDATE)
+				// multi threads
+				future<void> taskSHA512Update = threadPool.submit(SHA512UpdateWrapper, &sha512Ctx, databuf.data, databuf.datalen);
+				future<void> taskSHA256Update = threadPool.submit(SHA256UpdateWrapper, &sha256Ctx, databuf.data, databuf.datalen);
+				future<void> taskSHA1Update = threadPool.submit(SHA1UpdateWrapper, &sha1, databuf.data, databuf.datalen);
+				future<void> taskMD5Update = threadPool.submit(MD5UpdateWrapper, &mdContext, databuf.data, databuf.datalen);
+
+				taskSHA512Update.wait();
+				taskSHA256Update.wait();
+				taskSHA1Update.wait();
+				taskMD5Update.wait();
+#else
+				// single thread
+				//MD5Update(&mdContext, databuf.data, databuf.datalen); // MD5 update
+				MD5UpdateWrapper(&mdContext, databuf.data, databuf.datalen);
+				//sha1.Update(databuf.data, databuf.datalen); // SHA1 update
+				SHA1UpdateWrapper(&sha1, databuf.data, databuf.datalen);
+				//sha256_update(&sha256Ctx, databuf.data, databuf.datalen); // SHA256 update
+				SHA256UpdateWrapper(&sha256Ctx, databuf.data, databuf.datalen);
+				//SHA512_Update(&sha512Ctx, databuf.data, databuf.datalen); // SHA512 update
+				SHA512UpdateWrapper(&sha512Ctx, databuf.data, databuf.datalen);
+#endif
 
 				finishedSize += databuf.datalen;
 
@@ -403,7 +463,10 @@ int WINAPI HashThreadFunc(void *param)
 	} // end for(i = 0; i < (thrdData->nFiles); i++)
 
 	uiBridge->calcFinish();
-	
+
+#if defined (FHASH_THREAD_HASH_UPDATE)
+	threadPool.shutdown();
+#endif
 	thrdData->threadWorking = false;
 
 	return 0;
